@@ -1,0 +1,1 @@
+C:\Super_HandAI_z\runtime\pwsh\pwsh.exe -NoProfile -ExecutionPolicy Bypass -File C:\Super_HandAI_z\setup.ps1
