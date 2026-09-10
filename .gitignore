@@ -12,3 +12,8 @@ GLM-Agent Bridge U1/Temp/
 *.bak*
 *.new
 *.ts.bak*
+
+data/reports/*.md
+!data/reports/.gitkeep
+data/logs/*.log
+agent/data/
