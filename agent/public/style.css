@@ -255,3 +255,180 @@ button.warn:hover {
     opacity: 0.4;
   }
 }
+
+/* === СИСТЕМА ФИЧ: витрина (additive, конец файла) === */
+.features-panel {
+  padding: 0;
+}
+.features-panel summary {
+  cursor: pointer;
+  padding: 12px 14px;
+  user-select: none;
+}
+.features-panel summary h2 {
+  display: inline;
+  margin: 0;
+  font-size: 13px;
+}
+.features-panel[open] {
+  padding-bottom: 10px;
+}
+.features-security {
+  margin: 4px 14px 10px;
+  padding: 8px 10px;
+  border: 1px solid #a33;
+  border-radius: 6px;
+  background: rgba(170, 51, 51, 0.08);
+  color: #ff9d9d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.features-table {
+  width: calc(100% - 28px);
+  margin: 0 14px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.features-table th,
+.features-table td {
+  border-bottom: 1px solid #26272e;
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+.features-table th {
+  color: #8b8d98;
+  font-weight: 600;
+}
+.feat-name {
+  font-family: var(--mono, monospace);
+  white-space: nowrap;
+}
+.feat-bundled,
+.feat-pending,
+.feat-err {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  vertical-align: 1px;
+}
+.feat-bundled {
+  background: rgba(74, 158, 255, 0.15);
+  color: #4a9eff;
+}
+.feat-pending {
+  background: rgba(255, 209, 102, 0.12);
+  color: #ffd166;
+}
+.feat-err {
+  background: rgba(255, 99, 99, 0.12);
+  color: #ff6363;
+  cursor: help;
+}
+.feat-desc {
+  color: #b9bcc8;
+  line-height: 1.45;
+}
+.feat-slots {
+  color: #6f7280;
+  font-size: 11px;
+}
+.feat-ver {
+  color: #8b8d98;
+  white-space: nowrap;
+}
+.feat-toggle input {
+  accent-color: #4a9eff;
+  cursor: pointer;
+}
+.feat-del-btn {
+  background: none;
+  border: 1px solid #3a3b44;
+  border-radius: 6px;
+  color: #ff6363;
+  cursor: pointer;
+  padding: 2px 8px;
+}
+.feat-del-btn:disabled {
+  color: #4a4b55;
+  cursor: not-allowed;
+}
+.features-msg {
+  margin: 8px 14px 0;
+  font-size: 12px;
+  color: #7ddc9a;
+  white-space: pre-wrap;
+}
+.features-msg-err {
+  color: #ff9d9d;
+}
+/* === СИСТЕМА ФИЧ: one-click тумблеры подрежимов в OPERATOR-панели (topbar) === */
+.submode-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.submode-toggle {
+  background: var(--panel-2);
+  border: 1px solid #3a3b44;
+  border-radius: 12px;
+  color: #8a8d96;
+  cursor: pointer;
+  font: 11px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+}
+.submode-toggle:hover:not(:disabled) {
+  border-color: #4a9eff;
+}
+.submode-toggle.on {
+  background: rgba(39, 174, 96, 0.15);
+  border-color: #27ae60;
+  color: #7ddc9a;
+}
+.submode-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* N19: витрина фич — внутренняя прокрутка, не перекрывает кнопки */
+.features-panel { max-height: 320px; overflow-y: auto; }
+.features-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.features-table th, .features-table td { padding: 4px 6px; text-align: left; vertical-align: top; }
+.features-security { color: #ff6b6b; font-size: 11px; margin: 4px 0; }
+.submode-bar { display: inline-block; margin-left: 12px; }
+
+/* N19-2: усиленные правила витрины */
+.features-panel { max-height: 320px !important; overflow-y: auto !important; }
+.features-table { max-height: 220px !important; overflow-y: auto !important; display: block !important; }
+
+/* N19-3: таблица фич внутри панели */
+.features-panel table.features-table { table-layout: fixed !important; width: 100% !important; display: table !important; }
+.features-table td, .features-table th { word-break: break-word !important; overflow-wrap: anywhere !important; }
+.features-table td.feat-desc { font-size: 11px !important; }
+.features-table td.feat-toggle, .features-table td.feat-del { width: 44px !important; text-align: center !important; }
+.features-panel .btnrow { display: flex !important; gap: 6px; }
+
+/* N19-4: левая секция — общий скролл вместо перекрытий */
+.layout { align-items: stretch !important; }
+section.left { overflow-y: auto !important; max-height: calc(100vh - 120px) !important; padding-right: 6px; }
+
+/* N19-4: левая секция — общий скролл вместо перекрытий */
+.layout { align-items: stretch !important; }
+section.left { overflow-y: auto !important; max-height: calc(100vh - 120px) !important; padding-right: 6px; }
+
+/* N19-5: отчёт — компакт, скролл внутри */
+.panel textarea#report { height: 110px !important; min-height: 110px !important; }
+.panel:has(#report) { max-height: 220px !important; overflow-y: auto !important; }
+
+/* N19-6: ТЗ — компакт, скролл внутри */
+.panel textarea#tzText { height: 110px !important; min-height: 110px !important; }
+.panel:has(#tzText) { max-height: 220px !important; overflow-y: auto !important; }
+
+/* N19-7: жёсткие лимиты панелей — без перекрытий */
+.steps-panel { max-height: 140px !important; overflow-y: auto !important; flex-shrink: 0 !important; }
+.panel:has(#report) { max-height: 180px !important; overflow-y: auto !important; }
+.panel:has(#tzText) { flex-shrink: 0 !important; }

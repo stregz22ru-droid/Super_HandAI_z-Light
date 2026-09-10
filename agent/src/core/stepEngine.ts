@@ -14,6 +14,8 @@ import {
   type BgHandle,
 } from './ptyManager.js';
 import { journalAppend } from './journal.js';
+// СИСТЕМА ФИЧ: слоты (beforeRun/afterRun/onFail) — без активного реестра это но-оп
+import { featuresBeforeRun, featuresAfterRun, featuresOnFail } from '../features/registry.js';
 
 export type StepStatus = 'ok' | 'fail' | 'skip' | 'denied';
 
@@ -306,6 +308,9 @@ export async function executeDoc(
     let stepFailed = false;
     let stepDenied = false;
     let stepSkippedByOperator = false;
+    // СИСТЕМА ФИЧ: счётчики для статуса шага «все директивы пропущены фичей»
+    let executableDirectives = 0;
+    let skippedByFeature = 0;
     let stepDurationMs = 0;
     let stepExitCode: number | undefined;
     let stepCmd: string | undefined;
@@ -316,11 +321,36 @@ export async function executeDoc(
 
     for (const d of step.directives) {
       if (stopSignal.stopped) { stopped = true; break; }
+
+      // === СИСТЕМА ФИЧ: слот beforeRun (фича может skip-нуть директиву) ===
+      if (d.kind === 'RUN' || d.kind === 'RUN_BG' || d.kind === 'WRITE' || d.kind === 'GIT') {
+        executableDirectives++;
+        const verdict = await featuresBeforeRun(i, d);
+        if (verdict && verdict.skip) {
+          skippedByFeature++;
+          const skipReason = verdict.reason ?? 'skip (фича)';
+          stepNotes.push('SKIP(фича): ' + skipReason);
+          cb.onPtyData?.(taskId, '\x1b[35m[SKIP] ' + d.kind + ': ' + skipReason + '\x1b[0m\r\n');
+          journalAppend({
+            ts: new Date().toISOString(),
+            taskId,
+            step: i,
+            action: d.kind,
+            durationMs: 0,
+            note: 'skip: ' + skipReason,
+          });
+          continue;
+        }
+      }
+      // ================================================================
+
       if (d.kind === 'WRITE') {
         const guardRes = checkScript('', cfg.workspaceRoot, d.path);
         if (guardRes.denied) {
           stepDenied = true;
           stepNotes.push('DENIED: ' + guardRes.reason);
+          // СИСТЕМА ФИЧ: слот onFail
+          void featuresOnFail(i, 'DENIED: ' + guardRes.reason, { taskId, i, kind: 'WRITE', status: 'denied' });
           cb.onStepStatus?.(i, 'denied', { msg: guardRes.reason });
           break;
         }
@@ -330,6 +360,8 @@ export async function executeDoc(
           cb.onPtyData?.(taskId, '\x1b[36m✎ write ' + d.path + ' (' + lines + ' строк)\x1b[0m\r\n');
           stepNotes.push('write ' + d.path);
           stepExitCode = 0;
+          // СИСТЕМА ФИЧ: слот afterRun
+          void featuresAfterRun(i, { taskId, i, kind: 'WRITE', status: 'ok', cmd: 'WRITE ' + d.path });
           if (d.expects.length > 0) {
             stepCmd = 'WRITE ' + d.path;
             stepExpects = d.expects;
@@ -346,6 +378,8 @@ export async function executeDoc(
         } catch (e) {
           stepFailed = true;
           stepFailReason = 'WRITE failed: ' + (e instanceof Error ? e.message : String(e));
+          // СИСТЕМА ФИЧ: слот onFail
+          void featuresOnFail(i, stepFailReason, { taskId, i, kind: 'WRITE', status: 'fail' });
         }
         continue;
       }
@@ -385,6 +419,15 @@ export async function executeDoc(
         } else {
           stepNotes.push('GIT commit: ' + d.msg);
         }
+        // СИСТЕМА ФИЧ: слот afterRun
+        void featuresAfterRun(i, {
+          taskId,
+          i,
+          kind: 'GIT',
+          status: r2.status === 0 ? 'ok' : 'fail',
+          cmd: 'GIT commit: ' + d.msg,
+          exitCode: stepExitCode,
+        });
         continue;
       }
 
@@ -392,6 +435,8 @@ export async function executeDoc(
       if (guardRes.denied) {
         stepDenied = true;
         stepNotes.push('DENIED: ' + guardRes.reason);
+        // СИСТЕМА ФИЧ: слот onFail
+        void featuresOnFail(i, 'DENIED: ' + guardRes.reason, { taskId, i, kind: d.kind, status: 'denied' });
         cb.onStepStatus?.(i, 'denied', { msg: guardRes.reason });
         break;
       }
@@ -419,8 +464,18 @@ export async function executeDoc(
         stepMatched = res.matchedExpect;
         stepExpects = ['WAIT stdout: ' + d.waitMarker];
         if (res.failReason) stepFailReason = res.failReason;
+        // СИСТЕМА ФИЧ: слоты afterRun (+onFail при отказе)
+        void featuresAfterRun(i, {
+          taskId,
+          i,
+          kind: 'RUN_BG',
+          status: res.status === 'fail' ? 'fail' : 'ok',
+          cmd: res.cmd,
+          durationMs: res.durationMs,
+        });
         if (res.status === 'fail') {
           stepFailed = true;
+          void featuresOnFail(i, res.failReason ?? 'RUN_BG fail', { taskId, i, kind: 'RUN_BG', status: 'fail', cmd: res.cmd });
           cb.onStepStatus?.(i, 'fail', { ms: res.durationMs, msg: res.failReason });
           break;
         }
@@ -433,8 +488,19 @@ export async function executeDoc(
         stepMatched = res.matchedExpect;
         stepExpects = d.expects;
         if (res.failReason) stepFailReason = res.failReason;
+        // СИСТЕМА ФИЧ: слот afterRun
+        void featuresAfterRun(i, {
+          taskId,
+          i,
+          kind: 'RUN',
+          status: res.status === 'fail' ? 'fail' : 'ok',
+          cmd: res.cmd,
+          exitCode: res.exitCode,
+          durationMs: res.durationMs,
+        });
         if (res.status === 'fail') {
           stepFailed = true;
+          void featuresOnFail(i, res.failReason ?? 'RUN fail', { taskId, i, kind: 'RUN', status: 'fail', cmd: res.cmd });
           cb.onStepStatus?.(i, 'fail', { exit: res.exitCode, ms: res.durationMs, msg: res.failReason });
           break;
         }
@@ -450,13 +516,17 @@ export async function executeDoc(
       });
     }
 
+    // СИСТЕМА ФИЧ: шаг, в котором ВСЕ исполняемые директивы пропущены фичей — 'skip'
+    const allSkippedByFeature = executableDirectives > 0 && skippedByFeature === executableDirectives;
     const finalStatus: StepStatus = stepDenied
       ? 'denied'
       : stepSkippedByOperator
         ? 'skip'
         : stepFailed
           ? 'fail'
-          : 'ok';
+          : allSkippedByFeature
+            ? 'skip'
+            : 'ok';
 
     results.push({
       i,

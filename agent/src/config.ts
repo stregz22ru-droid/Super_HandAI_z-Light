@@ -20,6 +20,7 @@ export interface AgentConfig {
     linuxBash: ShellSpec;
   };
   stepTimeoutSec: number;
+  features?: Record<string, boolean>;
   maxOutputBytes: number;
   deny: string[];
 }

@@ -6,12 +6,13 @@
     <title>Super_HandAI_z — агент-исполнитель</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%230c0d10'/%3E%3Cg%20fill='none'%20stroke='%234a9eff'%20stroke-width='5'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M10%2022%20v20'/%3E%3Cpath%20d='M10%2024%20h12%20a5%205%200%200%201%205%205%20v3'/%3E%3Cpath%20d='M10%2040%20h12%20a5%205%200%200%200%205%20-5%20v-3'/%3E%3Cpath%20d='M54%2022%20v20'/%3E%3Cpath%20d='M54%2024%20h-12%20a5%205%200%200%200%20-5%205%20v3'/%3E%3Cpath%20d='M54%2040%20h-12%20a5%205%200%200%201%20-5%20-5%20v-3'/%3E%3C/g%3E%3Ccircle%20cx='32'%20cy='32'%20r='4.5'%20fill='%23ffd166'/%3E%3C/svg%3E" />
     <link rel="stylesheet" href="vendor/xterm.css?t=TOKEN" />
-    <link rel="stylesheet" href="style.css?t=TOKEN" />
+    <link rel="stylesheet" href="style.css?t=TOKEN&v=7" />
   </head>
   <body>
     <header class="topbar">
       <div class="brand">Super_HandAI_z</div>
       <div class="status" id="status">— нет задачи —</div>
+      <div id="submodeBar" class="submode-bar" title="Подрежимы фич — переключаются в один клик, без рестарта агента"></div>
     </header>
     <main class="layout">
       <section class="left">
@@ -39,6 +40,24 @@
             <button id="btnCopy">⧉ Копировать отчёт</button>
           </div>
         </div>
+        <details class="panel features-panel">
+          <summary><h2>Фичи</h2></summary>
+          <div class="features-security">⚠ Фичи исполняются с правами агента — не ставьте код из недоверенных источников.</div>
+          <table class="features-table">
+            <thead>
+              <tr><th>Имя</th><th>Описание</th><th>Версия</th><th>Вкл</th><th></th></tr>
+            </thead>
+            <tbody id="featuresBody">
+              <tr><td colspan="5">загрузка…</td></tr>
+            </tbody>
+          </table>
+          <div class="btnrow">
+            <button id="btnFeatureUpload">⬆ Загрузить фичу</button>
+            <input type="file" id="featureFile" accept=".feature.js,.js" style="display:none" />
+            <button id="btnFeaturesReload">⟳ Обновить</button>
+          </div>
+          <div id="featuresMsg" class="features-msg"></div>
+        </details>
         <div id="confirm" class="confirm hidden">
           <p id="confirmText"></p>
           <div class="btnrow">
@@ -56,5 +75,6 @@
     </main>
     <script src="vendor/xterm.js?t=TOKEN"></script>
     <script src="app.js?t=TOKEN"></script>
+    <script src="features.js?t=TOKEN"></script>
   </body>
 </html>

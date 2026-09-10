@@ -1,0 +1,4 @@
+AGP-MVP win64 bundle
+commit: cd96ebe
+date: 2026-09-08T05:32:57+00:00
+runtime: portable node.exe (win-x64, Node LTS v22)

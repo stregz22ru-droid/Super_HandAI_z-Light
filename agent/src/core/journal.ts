@@ -1,5 +1,5 @@
 // core/journal.ts — append-only журнал действий.
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, appendFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -12,6 +12,7 @@ export interface JournalEntry {
   action: string;
   exit?: number;
   durationMs?: number;
+  note?: string;
 }
 
 let journalPath: string | null = null;
@@ -25,6 +26,18 @@ function resolveJournalPath(): string {
   mkdirSync(dirname(p), { recursive: true });
   journalPath = p;
   return p;
+}
+
+export function journalTail(n: number): JournalEntry[] {
+  const p = resolveJournalPath();
+  if (!existsSync(p)) return [];
+  const lines = readFileSync(p, 'utf8').trim().split('\n').filter(Boolean);
+  const tail = lines.slice(-Math.max(1, n));
+  const out: JournalEntry[] = [];
+  for (const line of tail) {
+    try { out.push(JSON.parse(line) as JournalEntry); } catch { out.push({ ts: new Date().toISOString(), taskId: '(битая запись)', step: 0, action: '(битая запись)' }); }
+  }
+  return out;
 }
 
 export function journalAppend(entry: JournalEntry): void {

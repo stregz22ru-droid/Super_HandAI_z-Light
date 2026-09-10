@@ -13,6 +13,9 @@ import { lint } from './tz/linter.js';
 import { executeDoc, type EngineResult } from './core/stepEngine.js';
 import { renderReport, saveReport } from './core/reporter.js';
 import { ServerMsg } from './proto.js';
+// СИСТЕМА ФИЧ: HTTP-обработчики + лог-синк в терминал UI
+import { handleFeaturesApi } from './features/http.js';
+import { setFeatureLogSink, setActiveRegistry, FeatureRegistry, BUNDLED_FEATURES } from './features/registry.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -24,6 +27,14 @@ export interface ServerOptions {
   packDir?: string;
   // Путь к файлу стабильного токена (data/state/agent.token)
   tokenFile?: string;
+  // СИСТЕМА ФИЧ (additive): реестр + динамические маршруты фич (context-pack и др.)
+  features?: {
+    registry: FeatureRegistry;
+    routes: { method: string; path: string; handler: (req: any, res: any) => void }[];
+    featuresDir: string;
+    cfgPath: string;
+    root: string;
+  };
 }
 
 // Стабильный токен: создаётся один раз, живёт между рестартами.
@@ -121,6 +132,45 @@ export function startServer(opts: ServerOptions): { token: string; port: number;
       return;
     }
 
+    // === СИСТЕМА ФИЧ: маршруты под токен-гейтом (как /workspace/purge) ===
+    if (url.pathname === '/features' || url.pathname.startsWith('/features/')) {
+      const t = url.searchParams.get('t');
+      if (t !== token) {
+        res.writeHead(403, { 'content-type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'token required (параметр ?t=)' }));
+        return;
+      }
+      const feats = opts.features;
+      if (!feats) {
+        res.writeHead(503, { 'content-type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'система фич не инициализирована' }));
+        return;
+      }
+      const handled = await handleFeaturesApi(req, res, url, {
+        registry: feats.registry,
+        cfg,
+        cfgPath: feats.cfgPath,
+        root: feats.root,
+      });
+      if (handled) return;
+      // Динамические маршруты, зарегистрированные фичами (напр. context-pack)
+      const dyn = feats.routes.find((r) => r.method === req.method && r.path === url.pathname);
+      if (dyn) {
+        try {
+          await dyn.handler(req, res);
+        } catch (e) {
+          if (!res.headersSent) {
+            res.writeHead(500, { 'content-type': 'application/json; charset=utf-8' });
+          }
+          res.end(JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e) }));
+        }
+        return;
+      }
+      res.writeHead(404, { 'content-type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'unknown features route' }));
+      return;
+    }
+
     if (url.pathname === '/' || url.pathname === '/index.html') {
       const t = url.searchParams.get('t');
       if (t !== token) {
@@ -173,11 +223,31 @@ export function startServer(opts: ServerOptions): { token: string; port: number;
   let pendingConfirm: { resolve: (v: boolean) => void } | null = null;
 
   const broadcast = (msg: ServerMsg) => {
+
+  // Активация реестра фич (bundled: reflect/dry-run/context-pack)
+  try {
+    const reg = new FeatureRegistry(resolve(__dirname, "features"), "1.0.0");
+    reg.scanFeatures().then((r) => {
+      console.log("[features] активировано: " + BUNDLED_FEATURES.join(", "));
+      setFeatureLogSink((line) => {
+        broadcast({ type: "pty.data", task: activeTaskId ?? "__features__", data: line + "\r\n" });
+      });
+      setActiveRegistry(reg);
+    });
+  } catch (e) {
+    console.log("[features] ошибка активации: " + String(e));
+  }
     const data = JSON.stringify(msg);
     for (const c of wss.clients) {
       if (c.readyState === 1) c.send(data);
     }
   };
+
+  // СИСТЕМА ФИЧ: логи фич — в терминал UI (магента; ошибки красным) + консоль
+  setFeatureLogSink((level, line) => {
+    const color = level === 'error' ? '\x1b[31m' : level === 'warn' ? '\x1b[33m' : '\x1b[35m';
+    broadcast({ type: 'pty.data', task: activeTaskId ?? '__features__', data: `${color}${line}\x1b[0m\r\n` });
+  });
 
   wss.on('connection', (ws: WebSocket) => {
     let authed = false;
@@ -298,6 +368,7 @@ export function startServer(opts: ServerOptions): { token: string; port: number;
   httpServer.listen(cfg.port, '127.0.0.1', () => { });
 
   const close = async () => {
+    setFeatureLogSink(null);
     wss.close();
     httpServer.close();
   };
