@@ -17,3 +17,6 @@ data/reports/*.md
 !data/reports/.gitkeep
 data/logs/*.log
 agent/data/
+base-v2/
+agent/cd
+agent/public/public/
