@@ -15,7 +15,7 @@ import {
 } from './ptyManager.js';
 import { journalAppend } from './journal.js';
 // СИСТЕМА ФИЧ: слоты (beforeRun/afterRun/onFail) — без активного реестра это но-оп
-import { featuresBeforeRun, featuresAfterRun, featuresOnFail } from '../features/registry.js';
+import { featuresBeforeRun, featuresAfterRun, featuresOnFail, featuresSessionStart, endSession, getSessionState, pushSessionContext, getSlotBudgetMs } from '../features/registry.js';
 
 export type StepStatus = 'ok' | 'fail' | 'skip' | 'denied';
 
@@ -293,6 +293,10 @@ export async function executeDoc(
   let denied = false;
   let partialDueToFail = false;
 
+  // Base-этап 2: активация сессии задачи
+  try {
+    featuresSessionStart({ taskId, workspace, stepCount: doc.steps.length });
+  } catch { /* never-block */ }
   for (let si = 0; si < doc.steps.length; si++) {
     const step = doc.steps[si];
     const i = si + 1;
@@ -322,10 +326,31 @@ export async function executeDoc(
     for (const d of step.directives) {
       if (stopSignal.stopped) { stopped = true; break; }
 
-      // === СИСТЕМА ФИЧ: слот beforeRun (фича может skip-нуть директиву) ===
+      // === СИСТЕМА ФИЧ: слот beforeRun (фича может skip-нуть или DENY-нуть директиву) ===
+      // BASE ЭТАП 2 (B4): deny-ветка — единственная врезка в ядро (одобрена
+      // Мастером). Без включённой фичи check вердиктов нет → но-оп, поведение
+      // побайтово совпадает с базовым. Guard-DENY остаётся финальным: deny
+      // отсюда не может разрешить то, что guard запретит ниже.
       if (d.kind === 'RUN' || d.kind === 'RUN_BG' || d.kind === 'WRITE' || d.kind === 'GIT') {
         executableDirectives++;
         const verdict = await featuresBeforeRun(i, d);
+        if (verdict && verdict.deny) {
+          const denyReason = verdict.reason ?? 'denied (CHECK)';
+          stepDenied = true;
+          stepNotes.push('DENIED(CHECK): ' + denyReason);
+          cb.onPtyData?.(taskId, '\x1b[31m[DENIED] ' + d.kind + ' (CHECK): ' + denyReason + '\x1b[0m\r\n');
+          journalAppend({
+            ts: new Date().toISOString(),
+            taskId,
+            step: i,
+            action: d.kind,
+            durationMs: 0,
+            note: 'denied(CHECK): ' + denyReason,
+          });
+          void featuresOnFail(i, 'DENIED(CHECK): ' + denyReason, { taskId, i, kind: d.kind, status: 'denied' });
+          cb.onStepStatus?.(i, 'denied', { msg: denyReason });
+          break;
+        }
         if (verdict && verdict.skip) {
           skippedByFeature++;
           const skipReason = verdict.reason ?? 'skip (фича)';

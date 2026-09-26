@@ -59,6 +59,7 @@ cfg.features = { ...(cfg.features ?? {}) };
 const featureCtx: FeatureContext = {
   coreVersion,
   config: cfg as AgentConfig & { features: Record<string, boolean> },
+  session: { taskId: null, phase: null, startTime: null } as any,
   log: (level, msg) => featureLog(level, msg),
   registerRoute: (method, path, handler) => featureRoutes.push({ method, path, handler }),
   gitStatus: () =>

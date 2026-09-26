@@ -1,0 +1,19 @@
+node_modules/
+agent/dist/
+runtime/
+data/logs/
+data/state/
+workspace/
+GLM-Agent Bridge U1/Profils/
+GLM-Agent Bridge U1/Temp/
+*.log
+
+*.bak
+*.bak*
+*.new
+*.ts.bak*
+
+data/reports/*.md
+!data/reports/.gitkeep
+data/logs/*.log
+agent/data/

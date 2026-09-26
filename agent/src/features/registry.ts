@@ -1,16 +1,30 @@
 // features/registry.ts — Система фич: реестр, манифесты, слоты, диспетчеризация.
 // НОВЫЙ ФАЙЛ (СИСТЕМА ФИЧ) — ядро не ломается: движок вызывает только
-// featuresBeforeRun/featuresAfterRun/featuresOnFail, которые безопасно
-// но-опятся, если реестр не активирован (setActiveRegistry не вызывался).
+// featuresBeforeRun/featuresAfterRun/featuresOnFail (+ с Этапа 1 —
+// featuresSessionStart), которые безопасно но-опятся, если реестр не
+// активирован (setActiveRegistry не вызывался).
+//
+// ЭТАП 1 (МОДУЛЬ 2 — hooks-контракты stepEngine, по Ponytail-Research табл. 9):
+//   2.1) слот onSessionStart — активация фич по умолчанию на сессию задачи;
+//        session-состояние (beginSession/getSessionState/endSession).
+//   2.2) additionalContext-канал: любой хук-слот может вернуть не только
+//        skip/modify, но и additionalContext[] — аддитивный канал в журнал
+//        и следующий промт (никогда не влияет на вердикт).
+//   2.3) Never-block контракт: каждый вызов слота обёрнут в тайм-бюджет
+//        (setSlotBudgetMs), ошибки гасятся (silent fail), слот может объявить
+//        самовыход (disableSelf) — слот НИКОГДА не роняет цикл задачи.
+//   2.4) Windows-гигиена внешних хуков — см. core/externalHooks.ts
+//        (BOM-strip, CRLF, plain node, allowlist).
+// Совместимость: старые фичи (без additionalContext/disableSelf) работают как раньше.
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 // ---------- Типы ----------
 
-export type SlotName = 'beforeRun' | 'afterRun' | 'onFail' | 'route';
-export const SLOT_NAMES: SlotName[] = ['beforeRun', 'afterRun', 'onFail', 'route'];
-const HOOK_SLOTS: SlotName[] = ['beforeRun', 'afterRun', 'onFail'];
+export type SlotName = 'onSessionStart' | 'beforeRun' | 'afterRun' | 'onFail' | 'route';
+export const SLOT_NAMES: SlotName[] = ['onSessionStart', 'beforeRun', 'afterRun', 'onFail', 'route'];
+const HOOK_SLOTS: SlotName[] = ['onSessionStart', 'beforeRun', 'afterRun', 'onFail'];
 
 /** Фичи, поставляемые с ядром (запрещено удалять через DELETE /features/:name). */
 export const BUNDLED_FEATURES = ['reflect', 'dry-run', 'context-pack'];
@@ -36,6 +50,8 @@ export interface FeatureContext {
   coreVersion: string;
   /** Живая ссылка на config.features — подрежимы (напр. dry-run-active) читаются на каждом шаге */
   config: { features: Record<string, boolean> };
+  /** ЭТАП 1 (2.1): живая ссылка на session-состояние задачи (flags/context). */
+  session: SessionState;
   log(level: 'info' | 'warn' | 'error', msg: string): void;
   registerRoute(
     method: 'GET' | 'POST' | 'DELETE' | 'PUT',
@@ -72,6 +88,138 @@ export interface SlotRunInfo {
 export interface BeforeRunVerdict {
   skip?: boolean;
   reason?: string;
+  // ЭТАП 1 (2.2): аддитивный контекст — в журнал/следующий промт, не влияет на вердикт.
+  additionalContext?: string[];
+  // ЭТАП 1 (2.3): самовыход — обработчики фичи отключаются до конца сессии.
+  disableSelf?: boolean;
+    // Base-этап 2: deny-вердикт от CHECK-директивы
+    deny?: { reason: string };
+}
+
+/** Вердикт слота onSessionStart (ЭТАП 1, 2.1). */
+export interface SessionStartVerdict {
+  /** Контекст сессии — в журнал и следующий промт. */
+  additionalContext?: string[];
+  /** Session-флаги по умолчанию (напр. { 'dry-run-active': true } на эту сессию). */
+  flags?: Record<string, boolean>;
+  disableSelf?: boolean;
+    // Base-этап 2: deny-вердикт от CHECK-директивы
+    deny?: { reason: string };
+}
+
+/**
+ * Session-состояние задачи (ЭТАП 1, 2.1). Живая ссылка выдаётся фичам через
+ * FeatureContext.session — фичи могут читать/писать flags и context на любом слоте.
+ * НЕ персистится: живёт ровно одну сессию (одну задачу).
+ */
+export interface SessionState {
+  taskId: string | null;
+  workspace: string | null;
+  stepCount: number;
+  startedAt: string | null;
+  /** Флаги сессии (поверх config.features, только на эту сессию). */
+  flags: Record<string, boolean>;
+  /** additionalContext-канал (2.2): собранный контекст сессии. */
+  context: string[];
+}
+
+const CONTEXT_MAX_ENTRIES = 50;
+const CONTEXT_MAX_LEN = 2000;
+
+function emptySession(): SessionState {
+  return { taskId: null, workspace: null, stepCount: 0, startedAt: null, flags: {}, context: [] };
+}
+
+let session: SessionState = emptySession();
+
+/**
+ * Начало сессии (вызывает stepEngine в начале каждой задачи).
+ * Мутирует ТОТ ЖЕ объект session (не пересоздаёт) — живые ссылки ctx.session
+ * у фич остаются валидными всю жизнь процесса.
+ */
+export function beginSession(taskId: string, workspace: string, stepCount: number): SessionState {
+  disabledFeatures.clear();
+  session.taskId = taskId;
+  session.workspace = workspace;
+  session.stepCount = stepCount;
+  session.startedAt = new Date().toISOString();
+  for (const k of Object.keys(session.flags)) delete session.flags[k];
+  session.context.length = 0;
+  return session;
+}
+
+export function endSession(): void {
+  disabledFeatures.clear();
+  session.taskId = null;
+  session.workspace = null;
+  session.stepCount = 0;
+  session.startedAt = null;
+  for (const k of Object.keys(session.flags)) delete session.flags[k];
+  session.context.length = 0;
+}
+
+export function getSessionState(): SessionState {
+  return session;
+}
+
+/** Добавление в additionalContext-канал с капами (защита от переполнения). */
+export function pushSessionContext(text: string): void {
+  if (typeof text !== 'string' || text.trim().length === 0) return;
+  if (session.context.length >= CONTEXT_MAX_ENTRIES) return;
+  const t = text.length > CONTEXT_MAX_LEN ? text.slice(0, CONTEXT_MAX_LEN) + '…' : text;
+  session.context.push(t);
+}
+
+// --- ЭТАП 1 (2.3): Never-block — тайм-бюджет слотов ---------------------------
+
+export const DEFAULT_SLOT_BUDGET_MS = 2000;
+let slotBudgetMs = DEFAULT_SLOT_BUDGET_MS;
+export function setSlotBudgetMs(ms: number): void {
+  if (Number.isFinite(ms) && ms >= 0) slotBudgetMs = ms;
+}
+export function getSlotBudgetMs(): number {
+  return slotBudgetMs;
+}
+
+/** Самовыход слота (disableSelf): имена фич, отключённых до конца сессии. */
+const disabledFeatures = new Set<string>();
+
+async function withSlotBudget<T>(slot: string, feature: string, fn: () => T | Promise<T>): Promise<{ value?: T; error?: string; timedOut?: boolean }> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const race = await Promise.race([
+      Promise.resolve()
+        .then(fn)
+        .then((value) => ({ value }))
+        .catch((e: unknown) => ({ error: e instanceof Error ? e.message : String(e) })),
+      new Promise<{ error: string; timedOut: boolean }>((res) => {
+        timer = setTimeout(() => res({ error: `бюджет ${slotBudgetMs}ms исчерпан`, timedOut: true }), slotBudgetMs);
+      }),
+    ]);
+    return race as { value?: T; error?: string; timedOut?: boolean };
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/** Извлечение additionalContext из вердикта любого слота (2.2, аддитивно). */
+function collectContext(verdict: unknown): void {
+  if (!verdict || typeof verdict !== 'object') return;
+  const v = verdict as { additionalContext?: unknown };
+  if (Array.isArray(v.additionalContext)) {
+    for (const c of v.additionalContext) {
+      if (typeof c === 'string') pushSessionContext(c);
+    }
+  }
+}
+
+/** disableSelf из вердикта — фича отключается до конца сессии (2.3). */
+function applyDisableSelf(verdict: unknown, feature: string): void {
+  if (!verdict || typeof verdict !== 'object') return;
+  if ((verdict as { disableSelf?: unknown }).disableSelf === true) {
+    disabledFeatures.add(feature);
+    emitLog('warn', `слот: фича "${feature}" объявила самовыход (disableSelf) — отключена до конца сессии`);
+  }
 }
 
 type SlotFn = (...args: any[]) => any;
@@ -196,49 +344,110 @@ let activeRegistry: FeatureRegistry | null = null;
 export function setActiveRegistry(r: FeatureRegistry | null): void {
   activeRegistry = r;
 }
+/** ЭТАП 1: чтение активного реестра (ограда активации в server.ts broadcast). */
+export function getActiveRegistry(): FeatureRegistry | null {
+  return activeRegistry;
+}
 
 /** Публичное логирование фич (console + синк терминала UI, если установлен). */
 export function featureLog(level: string, msg: string): void {
   emitLog(level, msg);
 }
 
-/** Слот beforeRun: первая фича, вернувшая {skip:true}, решает. Ошибки фич не роняют движок. */
+/**
+ * ЭТАП 1 (2.1): слот onSessionStart — старт сессии задачи.
+ * Возвращает собранный additionalContext (журнал + следующий промт).
+ * Флаги вердиктов накладываются на session.flags (активация по умолчанию на сессию).
+ */
+export async function featuresSessionStart(info: { taskId: string; workspace: string; stepCount: number }): Promise<string[]> {
+  beginSession(info.taskId, info.workspace, info.stepCount);
+  const reg = activeRegistry;
+  if (!reg) return [];
+  const fns = reg.slotFns('onSessionStart');
+  for (let idx = 0; idx < fns.length; idx++) {
+    const feature = reg.slotFeatureNames('onSessionStart')[idx] ?? `#${idx}`;
+    const r = await withSlotBudget<SessionStartVerdict | void>('onSessionStart', feature, () => fns[idx](info));
+    if (r.error) {
+      emitLog('error', `onSessionStart (${feature}): ${r.error}`);
+      continue; // never-block: ошибка/таймаут не роняют сессию
+    }
+    const v = r.value;
+    if (v && typeof v === 'object') {
+      collectContext(v);
+      if (v.flags && typeof v.flags === 'object') {
+        for (const [k, val] of Object.entries(v.flags)) {
+          if (typeof val === 'boolean') session.flags[k] = val;
+        }
+      }
+      applyDisableSelf(v, feature);
+    }
+  }
+  return [...session.context];
+}
+
+/**
+ * Слот beforeRun: первая фича, вернувшая {skip:true}, решает. Ошибки фич не роняют движок.
+ * ЭТАП 1: каждый вызов под тайм-бюджетом (never-block), additionalContext собирается,
+ * disableSelf отключает фичу до конца сессии.
+ */
 export async function featuresBeforeRun(i: number, directive: unknown): Promise<BeforeRunVerdict | undefined> {
   const reg = activeRegistry;
   if (!reg) return undefined;
-  for (const f of reg.slotFns('beforeRun')) {
-    try {
-      const v = (await f(i, directive)) as BeforeRunVerdict | undefined;
-      if (v && typeof v === 'object' && v.skip === true) return v;
-    } catch (e) {
-      emitLog('error', `beforeRun: ${e instanceof Error ? e.message : String(e)}`);
+  const fns = reg.slotFns('beforeRun');
+  const names = reg.slotFeatureNames('beforeRun');
+  for (let idx = 0; idx < fns.length; idx++) {
+    const feature = names[idx] ?? `#${idx}`;
+    const r = await withSlotBudget<BeforeRunVerdict | undefined>('beforeRun', feature, () => fns[idx](i, directive));
+    if (r.error) {
+      emitLog('error', `beforeRun (${feature}): ${r.error}`);
+      continue;
+    }
+    const v = r.value;
+    if (v && typeof v === 'object') {
+      collectContext(v);
+      applyDisableSelf(v, feature);
+      if (v.skip === true) return v;
     }
   }
   return undefined;
 }
 
-/** Слот afterRun: уведомление после исполнения директивы. */
+/** Слот afterRun: уведомление после исполнения директивы (ЭТАП 1: бюджет + context + самовыход). */
 export async function featuresAfterRun(i: number, info: SlotRunInfo): Promise<void> {
   const reg = activeRegistry;
   if (!reg) return;
-  for (const f of reg.slotFns('afterRun')) {
-    try {
-      await f(i, info);
-    } catch (e) {
-      emitLog('error', `afterRun: ${e instanceof Error ? e.message : String(e)}`);
+  const fns = reg.slotFns('afterRun');
+  const names = reg.slotFeatureNames('afterRun');
+  for (let idx = 0; idx < fns.length; idx++) {
+    const feature = names[idx] ?? `#${idx}`;
+    const r = await withSlotBudget<void | { additionalContext?: string[]; disableSelf?: boolean }>('afterRun', feature, () => fns[idx](i, info));
+    if (r.error) {
+      emitLog('error', `afterRun (${feature}): ${r.error}`);
+      continue;
+    }
+    if (r.value && typeof r.value === 'object') {
+      collectContext(r.value);
+      applyDisableSelf(r.value, feature);
     }
   }
 }
 
-/** Слот onFail: уведомление при отказе/запрете директивы. */
+/** Слот onFail: уведомление при отказе/запрете директивы (ЭТАП 1: бюджет + context + самовыход). */
 export async function featuresOnFail(i: number, failReason: string, info?: Partial<SlotRunInfo>): Promise<void> {
   const reg = activeRegistry;
   if (!reg) return;
-  for (const f of reg.slotFns('onFail')) {
-    try {
-      await f(i, failReason, info);
-    } catch (e) {
-      emitLog('error', `onFail: ${e instanceof Error ? e.message : String(e)}`);
+  const fns = reg.slotFns('onFail');
+  const names = reg.slotFeatureNames('onFail');
+  for (let idx = 0; idx < fns.length; idx++) {
+    const feature = names[idx] ?? `#${idx}`;
+    const r = await withSlotBudget<void | { additionalContext?: string[]; disableSelf?: boolean }>('onFail', feature, () => fns[idx](i, failReason, info));
+    if (r.error) {
+      emitLog('error', `onFail (${feature}): ${r.error}`);
+      continue;
+    }
+    if (r.value && typeof r.value === 'object') {
+      collectContext(r.value);
+      applyDisableSelf(r.value, feature);
     }
   }
 }
@@ -415,8 +624,20 @@ export class FeatureRegistry {
   slotFns(slot: SlotName): SlotFn[] {
     const out: SlotFn[] = [];
     for (const name of this.loadedNames) {
+      if (disabledFeatures.has(name)) continue; // ЭТАП 1 (2.3): самовыход действует до конца сессии
       const h = this.handlerMap.get(name)?.[slot];
       if (typeof h === 'function') out.push(h);
+    }
+    return out;
+  }
+
+  /** ЭТАП 1: имена фич в том же порядке, что slotFns(slot) — для диагностик бюджета. */
+  slotFeatureNames(slot: SlotName): string[] {
+    const out: string[] = [];
+    for (const name of this.loadedNames) {
+      if (disabledFeatures.has(name)) continue;
+      const h = this.handlerMap.get(name)?.[slot];
+      if (typeof h === 'function') out.push(name);
     }
     return out;
   }

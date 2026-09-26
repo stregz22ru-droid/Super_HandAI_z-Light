@@ -1,0 +1,434 @@
+/* style.css — Super_HandAI_z UI */
+:root {
+  --bg: #0c0d10;
+  --panel: #15171c;
+  --panel-2: #1c1f26;
+  --border: #2a2d35;
+  --text: #e6e6e6;
+  --muted: #8a8d96;
+  --primary: #2d6cdf;
+  --warn: #c0392b;
+  --ok: #27ae60;
+  --fail: #c0392b;
+  --denied: #8e44ad;
+  --run: #2980b9;
+  --skip: #7f8c8d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar .brand {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.topbar .status {
+  color: var(--muted);
+  flex: 1;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 480px 1fr;
+  gap: 8px;
+  padding: 8px;
+  height: calc(100vh - 49px);
+}
+
+.left,
+.right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.panel h2 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+
+textarea {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font: 12px/1.4 "SFMono-Regular", Menlo, Consolas, monospace;
+  padding: 6px 8px;
+  resize: none;
+  width: 100%;
+  flex: 1;
+  min-height: 120px;
+}
+
+textarea#tzText {
+  min-height: 200px;
+}
+
+textarea#report {
+  min-height: 140px;
+}
+
+.btnrow {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+button {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+button:hover {
+  background: #2a2d35;
+}
+
+button.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+button.primary:hover {
+  background: #1e57b8;
+}
+
+button.warn {
+  background: var(--warn);
+  border-color: var(--warn);
+  color: #fff;
+}
+
+button.warn:hover {
+  background: #8b2a1f;
+}
+
+.steps-panel {
+  flex: 1;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.steps .step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  margin: 2px 0;
+  border-left: 3px solid var(--skip);
+}
+
+.steps .step .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--skip);
+  flex: 0 0 8px;
+}
+
+.steps .step-run {
+  border-left-color: var(--run);
+}
+.steps .step-run .dot {
+  background: var(--run);
+  animation: pulse 1.2s infinite;
+}
+
+.steps .step-ok {
+  border-left-color: var(--ok);
+}
+.steps .step-ok .dot {
+  background: var(--ok);
+}
+
+.steps .step-fail {
+  border-left-color: var(--fail);
+}
+.steps .step-fail .dot {
+  background: var(--fail);
+}
+
+.steps .step-denied {
+  border-left-color: var(--denied);
+}
+.steps .step-denied .dot {
+  background: var(--denied);
+}
+
+.steps .step-skip .dot {
+  background: var(--skip);
+}
+
+.steps .step .state {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.steps .step .ms {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.term-panel {
+  flex: 1;
+}
+
+#term {
+  flex: 1;
+  background: var(--bg);
+  padding: 4px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.confirm {
+  background: var(--panel-2);
+  border: 1px solid var(--warn);
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+
+.confirm.hidden {
+  display: none;
+}
+
+.confirm .btnrow {
+  margin-top: 8px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* === СИСТЕМА ФИЧ: витрина (additive, конец файла) === */
+.features-panel {
+  padding: 0;
+}
+.features-panel summary {
+  cursor: pointer;
+  padding: 12px 14px;
+  user-select: none;
+}
+.features-panel summary h2 {
+  display: inline;
+  margin: 0;
+  font-size: 13px;
+}
+.features-panel[open] {
+  padding-bottom: 10px;
+}
+.features-security {
+  margin: 4px 14px 10px;
+  padding: 8px 10px;
+  border: 1px solid #a33;
+  border-radius: 6px;
+  background: rgba(170, 51, 51, 0.08);
+  color: #ff9d9d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.features-table {
+  width: calc(100% - 28px);
+  margin: 0 14px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.features-table th,
+.features-table td {
+  border-bottom: 1px solid #26272e;
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+.features-table th {
+  color: #8b8d98;
+  font-weight: 600;
+}
+.feat-name {
+  font-family: var(--mono, monospace);
+  white-space: nowrap;
+}
+.feat-bundled,
+.feat-pending,
+.feat-err {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  vertical-align: 1px;
+}
+.feat-bundled {
+  background: rgba(74, 158, 255, 0.15);
+  color: #4a9eff;
+}
+.feat-pending {
+  background: rgba(255, 209, 102, 0.12);
+  color: #ffd166;
+}
+.feat-err {
+  background: rgba(255, 99, 99, 0.12);
+  color: #ff6363;
+  cursor: help;
+}
+.feat-desc {
+  color: #b9bcc8;
+  line-height: 1.45;
+}
+.feat-slots {
+  color: #6f7280;
+  font-size: 11px;
+}
+.feat-ver {
+  color: #8b8d98;
+  white-space: nowrap;
+}
+.feat-toggle input {
+  accent-color: #4a9eff;
+  cursor: pointer;
+}
+.feat-del-btn {
+  background: none;
+  border: 1px solid #3a3b44;
+  border-radius: 6px;
+  color: #ff6363;
+  cursor: pointer;
+  padding: 2px 8px;
+}
+.feat-del-btn:disabled {
+  color: #4a4b55;
+  cursor: not-allowed;
+}
+.features-msg {
+  margin: 8px 14px 0;
+  font-size: 12px;
+  color: #7ddc9a;
+  white-space: pre-wrap;
+}
+.features-msg-err {
+  color: #ff9d9d;
+}
+/* === СИСТЕМА ФИЧ: one-click тумблеры подрежимов в OPERATOR-панели (topbar) === */
+.submode-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.submode-toggle {
+  background: var(--panel-2);
+  border: 1px solid #3a3b44;
+  border-radius: 12px;
+  color: #8a8d96;
+  cursor: pointer;
+  font: 11px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+}
+.submode-toggle:hover:not(:disabled) {
+  border-color: #4a9eff;
+}
+.submode-toggle.on {
+  background: rgba(39, 174, 96, 0.15);
+  border-color: #27ae60;
+  color: #7ddc9a;
+}
+.submode-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* N19: витрина фич — внутренняя прокрутка, не перекрывает кнопки */
+.features-panel { max-height: 320px; overflow-y: auto; }
+.features-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.features-table th, .features-table td { padding: 4px 6px; text-align: left; vertical-align: top; }
+.features-security { color: #ff6b6b; font-size: 11px; margin: 4px 0; }
+.submode-bar { display: inline-block; margin-left: 12px; }
+
+/* N19-2: усиленные правила витрины */
+.features-panel { max-height: 320px !important; overflow-y: auto !important; }
+.features-table { max-height: 220px !important; overflow-y: auto !important; display: block !important; }
+
+/* N19-3: таблица фич внутри панели */
+.features-panel table.features-table { table-layout: fixed !important; width: 100% !important; display: table !important; }
+.features-table td, .features-table th { word-break: break-word !important; overflow-wrap: anywhere !important; }
+.features-table td.feat-desc { font-size: 11px !important; }
+.features-table td.feat-toggle, .features-table td.feat-del { width: 44px !important; text-align: center !important; }
+.features-panel .btnrow { display: flex !important; gap: 6px; }
+
+/* N19-4: левая секция — общий скролл вместо перекрытий */
+.layout { align-items: stretch !important; }
+section.left { overflow-y: auto !important; max-height: calc(100vh - 120px) !important; padding-right: 6px; }
+
+/* N19-4: левая секция — общий скролл вместо перекрытий */
+.layout { align-items: stretch !important; }
+section.left { overflow-y: auto !important; max-height: calc(100vh - 120px) !important; padding-right: 6px; }
+
+/* N19-5: отчёт — компакт, скролл внутри */
+.panel textarea#report { height: 110px !important; min-height: 110px !important; }
+.panel:has(#report) { max-height: 220px !important; overflow-y: auto !important; }
+
+/* N19-6: ТЗ — компакт, скролл внутри */
+.panel textarea#tzText { height: 110px !important; min-height: 110px !important; }
+.panel:has(#tzText) { max-height: 220px !important; overflow-y: auto !important; }
+
+/* N19-7: жёсткие лимиты панелей — без перекрытий */
+.steps-panel { max-height: 140px !important; overflow-y: auto !important; flex-shrink: 0 !important; }
+.panel:has(#report) { max-height: 180px !important; overflow-y: auto !important; }
+.panel:has(#tzText) { flex-shrink: 0 !important; }

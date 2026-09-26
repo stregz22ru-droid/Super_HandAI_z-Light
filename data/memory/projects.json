@@ -1,0 +1,242 @@
+{
+  "C:\\Users\\ss23ru\\AppData\\Local\\Temp\\shz-e2e-vYaSV8\\workspace": {
+    "workdir": "C:\\Users\\ss23ru\\AppData\\Local\\Temp\\shz-e2e-vYaSV8\\workspace",
+    "cycles": 1,
+    "statuses": {
+      "STOPPED": 1
+    },
+    "dates": {
+      "first": "2026-09-25T09:27:29.206Z",
+      "last": "2026-09-25T09:27:29.206Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: E2E интеграция — СТАТУС: STOPPED — шагов выполнено 0/0. workdir: C:\\Users\\ss23ru\\AppData\\Local\\Temp\\shz-e2e-vYaSV8\\workspace"
+  },
+  "C:\\Super_HandAI_z\\workspace\\autopilot-test": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\autopilot-test",
+    "cycles": 1,
+    "statuses": {
+      "SUCCESS": 1
+    },
+    "dates": {
+      "first": "2026-09-25T16:56:15.184Z",
+      "last": "2026-09-25T16:56:15.184Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: Тест автопилота — проверка включения — СТАТУС: SUCCESS — шагов выполнено 2/2. workdir: C:\\Super_HandAI_z\\workspace\\autopilot-test"
+  },
+  "C:\\Super_HandAI_z\\workspace\\autopilot-e2e": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\autopilot-e2e",
+    "cycles": 2,
+    "statuses": {
+      "SUCCESS": 2
+    },
+    "dates": {
+      "first": "2026-09-25T17:16:16.208Z",
+      "last": "2026-09-26T08:13:12.725Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: E2E smoke — СТАТУС: SUCCESS — шагов выполнено 1/1. workdir: C:\\Super_HandAI_z\\workspace\\autopilot-e2e"
+  },
+  "C:\\Super_HandAI_z\\workspace\\autopilot-e2e-2": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\autopilot-e2e-2",
+    "cycles": 1,
+    "statuses": {
+      "SUCCESS": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:08:44.403Z",
+      "last": "2026-09-25T19:08:44.403Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: E2E smoke — создать test-autopilot.txt — СТАТУС: SUCCESS — шагов выполнено 0/1. workdir: C:\\Super_HandAI_z\\workspace\\autopilot-e2e-2"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-ingest-label": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-ingest-label",
+    "cycles": 1,
+    "statuses": {
+      "SUCCESS": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:21:27.404Z",
+      "last": "2026-09-25T19:21:27.404Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: glm-ingest поддержка метки tz (наш формат моста) — СТАТУС: SUCCESS — шагов выполнено 0/2. workdir: C:\\Super_HandAI_z\\workspace\\fix-ingest-label"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-ingest-label-2": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-ingest-label-2",
+    "cycles": 1,
+    "statuses": {
+      "PARTIAL": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:22:37.810Z",
+      "last": "2026-09-25T19:22:37.810Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: glm-ingest поддержка метки tz (наш формат моста) — СТАТУС: PARTIAL — шагов выполнено 1/2. workdir: C:\\Super_HandAI_z\\workspace\\fix-ingest-label-2"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-ingest-real": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-ingest-real",
+    "cycles": 1,
+    "statuses": {
+      "PARTIAL": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:23:17.110Z",
+      "last": "2026-09-25T19:23:17.110Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: Повтор после выключения DRY-RUN — реальное исполнение — СТАТУС: PARTIAL — шагов выполнено 1/1. workdir: C:\\Super_HandAI_z\\workspace\\fix-ingest-real"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-ingest-file": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-ingest-file",
+    "cycles": 1,
+    "statuses": {
+      "SUCCESS": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:24:40.269Z",
+      "last": "2026-09-25T19:24:40.269Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: fix-ingest.js через WRITE — СТАТУС: SUCCESS — шагов выполнено 2/2. workdir: C:\\Super_HandAI_z\\workspace\\fix-ingest-file"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-ingest-labels": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-ingest-labels",
+    "cycles": 1,
+    "statuses": {
+      "PARTIAL": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:27:01.223Z",
+      "last": "2026-09-25T19:27:01.223Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: fix-ingest.js — поддержка 3 и 4 бэктиков — СТАТУС: PARTIAL — шагов выполнено 1/3. workdir: C:\\Super_HandAI_z\\workspace\\fix-ingest-labels"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-ingest-reg": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-ingest-reg",
+    "cycles": 1,
+    "statuses": {
+      "SUCCESS": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:28:11.375Z",
+      "last": "2026-09-25T19:28:11.375Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: fix-ingest.js — новый регекс через WRITE (3 и 4 бэктика) — СТАТУС: SUCCESS — шагов выполнено 2/2. workdir: C:\\Super_HandAI_z\\workspace\\fix-ingest-reg"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-ingest-crlf": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-ingest-crlf",
+    "cycles": 1,
+    "statuses": {
+      "SUCCESS": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:31:10.235Z",
+      "last": "2026-09-25T19:31:10.235Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: fix-ingest.js — регекс с CRLF-толерантностью — СТАТУС: SUCCESS — шагов выполнено 2/2. workdir: C:\\Super_HandAI_z\\workspace\\fix-ingest-crlf"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-ingest-esm": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-ingest-esm",
+    "cycles": 1,
+    "statuses": {
+      "SUCCESS": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:43:35.155Z",
+      "last": "2026-09-25T19:43:35.155Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: fix-ingest.mjs — ESM версия (import вместо require) — СТАТУС: SUCCESS — шагов выполнено 2/2. workdir: C:\\Super_HandAI_z\\workspace\\fix-ingest-esm"
+  },
+  "C:\\Super_HandAI_z\\workspace\\mcp-smoke-agent-dir": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\mcp-smoke-agent-dir",
+    "cycles": 1,
+    "statuses": {
+      "PARTIAL": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:46:11.846Z",
+      "last": "2026-09-25T19:46:11.846Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: Перенос fix-ingest.mjs в папку агента (где ws доступен) — СТАТУС: PARTIAL — шагов выполнено 2/2. workdir: C:\\Super_HandAI_z\\workspace\\mcp-smoke-agent-dir"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-token-path": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-token-path",
+    "cycles": 1,
+    "statuses": {
+      "PARTIAL": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:47:21.847Z",
+      "last": "2026-09-25T19:47:21.847Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: Исправление пути токена в fix-ingest.mjs — СТАТУС: PARTIAL — шагов выполнено 2/2. workdir: C:\\Super_HandAI_z\\workspace\\fix-token-path"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-token-abs": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-token-abs",
+    "cycles": 1,
+    "statuses": {
+      "PARTIAL": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:48:14.790Z",
+      "last": "2026-09-25T19:48:14.790Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: Исправление пути токена на абсолютный — СТАТУС: PARTIAL — шагов выполнено 3/3. workdir: C:\\Super_HandAI_z\\workspace\\fix-token-abs"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-token-direct": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-token-direct",
+    "cycles": 1,
+    "statuses": {
+      "PARTIAL": 1
+    },
+    "dates": {
+      "first": "2026-09-25T19:49:15.490Z",
+      "last": "2026-09-25T19:49:15.490Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: Прямой путь токена (без path.join) — СТАТУС: PARTIAL — шагов выполнено 2/2. workdir: C:\\Super_HandAI_z\\workspace\\fix-token-direct"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-answer-4bt": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-answer-4bt",
+    "cycles": 1,
+    "statuses": {
+      "PARTIAL": 1
+    },
+    "dates": {
+      "first": "2026-09-26T06:49:13.757Z",
+      "last": "2026-09-26T06:49:13.757Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: Пересохранить answer.md с 4-бэктиковой обёрткой (парсер видит вложенные блоки) — СТАТУС: PARTIAL — шагов выполнено 1/1. workdir: C:\\Super_HandAI_z\\workspace\\fix-answer-4bt"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-ingest-final": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-ingest-final",
+    "cycles": 1,
+    "statuses": {
+      "SUCCESS": 1
+    },
+    "dates": {
+      "first": "2026-09-26T08:02:21.551Z",
+      "last": "2026-09-26T08:02:21.551Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: fix-ingest.mjs — финальная версия (ESM + CRLF-регекс) — СТАТУС: SUCCESS — шагов выполнено 2/2. workdir: C:\\Super_HandAI_z\\workspace\\fix-ingest-final"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-token-direct-2": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-token-direct-2",
+    "cycles": 1,
+    "statuses": {
+      "PARTIAL": 1
+    },
+    "dates": {
+      "first": "2026-09-26T08:11:39.068Z",
+      "last": "2026-09-26T08:11:39.068Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: Прямой путь без path.join — СТАТУС: PARTIAL — шагов выполнено 2/2. workdir: C:\\Super_HandAI_z\\workspace\\fix-token-direct-2"
+  },
+  "C:\\Super_HandAI_z\\workspace\\fix-tz-find": {
+    "workdir": "C:\\Super_HandAI_z\\workspace\\fix-tz-find",
+    "cycles": 1,
+    "statuses": {
+      "SUCCESS": 1
+    },
+    "dates": {
+      "first": "2026-09-26T08:12:50.367Z",
+      "last": "2026-09-26T08:12:50.367Z"
+    },
+    "lastReportSummary": "# ОТЧЁТ: fix-ingest — прямой поиск ТЗ по строке # ЗАДАЧ — СТАТУС: SUCCESS — шагов выполнено 2/2. workdir: C:\\Super_HandAI_z\\workspace\\fix-tz-find"
+  }
+}

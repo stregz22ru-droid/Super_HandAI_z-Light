@@ -1,0 +1,47 @@
+[
+  {
+    "id": "sec-001",
+    "type": "security",
+    "priority": 100,
+    "status": "ACTIVE",
+    "match": {
+      "action": "shell"
+    },
+    "decision": "DENY",
+    "reason": "shell запрещён внешнему контуру"
+  },
+  {
+    "id": "sec-002",
+    "type": "security",
+    "priority": 90,
+    "status": "ACTIVE",
+    "match": {
+      "targetPattern": "(api\\.wildberries|ozon\\.ru|1c)"
+    },
+    "decision": "REVIEW",
+    "reason": "внешние API — только с ручной проверкой"
+  },
+  {
+    "id": "biz-001",
+    "type": "business",
+    "priority": 50,
+    "status": "ACTIVE",
+    "match": {
+      "action": "call_api"
+    },
+    "decision": "DENY",
+    "reason": "лимиты calls/min: 100 запросов/мин на agentId (rate-limit)",
+    "limit": 100
+  },
+  {
+    "id": "eth-001",
+    "type": "ethics",
+    "priority": 40,
+    "status": "ACTIVE",
+    "match": {
+      "targetPattern": "(whatsapp|telegram)://.*user_id"
+    },
+    "decision": "REVIEW",
+    "reason": "исходящие к людям — ручная проверка"
+  }
+]

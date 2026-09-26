@@ -9,6 +9,7 @@
 // @run-at       document-idle
 // ==/UserScript==
 // v3.3: кнопка «🧹 Очистить workspace» — POST /workspace/purge с токеном.
+    <button id="export">⤓ Экспорт чата (Ctrl+A → Ctrl+C сначала)</button>
 // Защита на сервере: активная задача блокирует очистку (409).
 // v3.2: линтер — только RUN-скрипты; v3.1: каркасный детект; v3: cmView.
 (() => {
